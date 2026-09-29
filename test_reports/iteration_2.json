@@ -9,7 +9,7 @@
       {"endpoint": "DELETE /api/abbonamenti/{id}", "issue": "No cascade: lezioni still reference the deleted abbonamento inside partecipanti[], leaving orphan participants (previous single-abbonamento model deleted the lessons). Same for DELETE /api/tesserati (abbonamenti/ricevute/lezioni not cleaned)."},
       {"endpoint": "DELETE /api/ricevute/{id}", "issue": "Response field numero_riutilizzabile is `counter and counter.get('seq')==seq`, which yields null (not false) when the year counter document is missing. Coerce to bool."},
       {"endpoint": "PATCH /api/tesserati/{id}, /api/tipi-pacchetto/{id}, /api/movimenti/{id}", "issue": "Updates filter out None values, so a field can never be cleared (e.g. removing numero_tessera or scadenza_visita_medica is impossible via the API)."},
-      {"endpoint": "CORS (infra note)", "issue": "App-level CORS is now correct (echoes https://multi-tech-associate.preview.emergentagent.com with allow-credentials, verified on port 8001), but the k8s ingress rewrites Access-Control-Allow-Origin to '*' on the public URL. Not an app bug; no action unless cross-origin cookie auth is needed."}
+      {"endpoint": "CORS (infra note)", "issue": "App-level CORS is now correct (echoes https://wolfmind-v4-backend.onrender.com with allow-credentials, verified on port 8001), but the k8s ingress rewrites Access-Control-Allow-Origin to '*' on the public URL. Not an app bug; no action unless cross-origin cookie auth is needed."}
     ]
   },
   "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},

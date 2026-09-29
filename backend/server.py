@@ -957,7 +957,7 @@ async def send_ricevuta_email(rid: str, payload: SendReceiptEmail, user=Depends(
     frontend = os.environ.get("FRONTEND_URL", "").rstrip("/")
     if not frontend:
         # derive from request origin (fallback)
-        frontend = "https://multi-tech-associate.preview.emergentagent.com"
+        frontend = "https://wolfmind-v4-backend.onrender.com"
     pdf_link = f"{frontend}/api/public/ricevuta/{token}/pdf"
 
     org_name = org.get('name', "Wolf's Mind A.S.D.")
@@ -1041,7 +1041,7 @@ async def whatsapp_link(rid: str, user=Depends(current_user)):
     if not token:
         token = secrets.token_urlsafe(24)
         await db.ricevute.update_one({"_id": oid(rid)}, {"$set": {"public_token": token}})
-    frontend = os.environ.get("FRONTEND_URL", "").rstrip("/") or "https://multi-tech-associate.preview.emergentagent.com"
+    frontend = os.environ.get("FRONTEND_URL", "").rstrip("/") or "https://wolfmind-v4-backend.onrender.com"
     pdf_link = f"{frontend}/api/public/ricevuta/{token}/pdf"
     tel = (tesserato.get("telefono", "") if tesserato else "").replace(" ", "").replace("+", "")
     org_name = org.get('name', "Wolf's Mind ASD")
