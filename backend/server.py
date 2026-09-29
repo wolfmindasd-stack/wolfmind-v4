@@ -39,23 +39,41 @@ db = client[os.environ['DB_NAME']]
 
 app = FastAPI(title="Wolf's Mind Gestionale")
 # --- CONFIGURAZIONE CORS ---
-from fastapi.middleware.cors import CORSMiddleware
+# --- CONFIGURAZIONE CORS CUSTOM (Garantisce CORS anche su Errori 500) ---
+from fastapi import Request, Response
 
-# Inserisci i domini autorizzati
-origins = [
-    "https://wolfmind-v4.pages.dev",
-    "http://localhost:3000",
-    "http://localhost:5173",
-]
+@app.middleware("http")
+async def custom_cors_middleware(request: Request, call_next):
+    origin = request.headers.get("origin")
+    allowed_origins = [
+        "https://wolfmind-v4.pages.dev",
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ]
+    
+    # Gestione delle richieste preliminari OPTIONS (Preflight)
+    if request.method == "OPTIONS":
+        response = Response(status_code=204)
+    else:
+        try:
+            response = await call_next(request)
+        except Exception as e:
+            # Se il server va in errore 500, cattura l'eccezione e mantiene le intestazioni CORS
+            response = Response(
+                content=f'{{"detail": "Errore interno: {str(e)}"}}', 
+                status_code=500, 
+                media_type="application/json"
+            )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_origin_regex=r"https://.*\.pages\.dev",  # Accetta tutte le anteprime Cloudflare
-    allow_credentials=True,                        # Indispensabile per il Login e le sessioni
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    # Applica sempre l'origine esplicita senza usare mai l'asterisco '*'
+    if origin in allowed_origins or (origin and origin.endswith(".pages.dev")):
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+    
+    return response
+# -------------------------------------------------------------------------
 # ----------------------------
 api = APIRouter(prefix="/api")
 
