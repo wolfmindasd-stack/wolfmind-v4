@@ -967,8 +967,47 @@ async def send_ricevuta_email(rid: str, payload: SendReceiptEmail, user=Depends(
     doc = await db.ricevute.find_one({"_id": oid(rid)})
     if not doc:
         raise HTTPException(status_code=404, detail="Ricevuta non trovata")
-    if user["role"] != "admin" and doc.get("emesso_per_id") != user["id"]:
+    
+    # Recupera l'ID dell'utente in sicurezza (gestendo sia 'id' che '_id')
+    user_id = str(user.get("id") or user.get("_id", ""))
+    user_role = user.get("role", "")
+    
+    if user_role != "admin" and str(doc.get("emesso_per_id", "")) != user_id:
         raise HTTPException(status_code=403, detail="Non autorizzato")
+
+    # Controlla che le credenziali SMTP siano configurate su Render
+    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", 587))
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_pass = os.getenv("SMTP_PASSWORD")
+
+    if not smtp_user or not smtp_pass:
+        raise HTTPException(
+            status_code=500, 
+            detail="Credenziali SMTP non configurate nei parametri d'ambiente di Render"
+        )
+
+    try:
+        # Composizione e invio della mail
+        msg = MIMEMultipart()
+        msg["From"] = os.getenv("EMAIL_FROM", smtp_user)
+        msg["To"] = payload.email if hasattr(payload, "email") else doc.get("email")
+        msg["Subject"] = f"Ricevuta N. {doc.get('numero', '')} - Wolf's Mind A.S.D."
+        
+        body = f"Gentile socio/a,\nin allegato trovi la tua ricevuta N. {doc.get('numero', '')}.\n\nUn cordiale saluto,\nWolf's Mind A.S.D."
+        msg.attach(MIMEText(body, "plain"))
+
+        # Connessione SMTP con TLS
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_user, smtp_pass)
+        server.send_message(msg)
+        server.quit()
+
+        return {"status": "ok", "message": "Email inviata con successo"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Errore durante l'invio dell'email: {str(e)}")
     tesserato = await db.tesserati.find_one({"_id": oid(doc["tesserato_id"])})
     org = await _load_org()
     # Ensure public_token exists (backfill for legacy)
