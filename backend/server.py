@@ -39,18 +39,22 @@ db = client[os.environ['DB_NAME']]
 
 app = FastAPI(title="Wolf's Mind Gestionale")
 # --- CONFIGURAZIONE CORS ---
+from fastapi.middleware.cors import CORSMiddleware
+
+# Inserisci i domini autorizzati
 origins = [
-    "https://wolfmind-v4.pages.dev",  # Il tuo frontend su Cloudflare Pages
-    "http://localhost:3000",          # (Opzionale) per test locali
-    "http://localhost:5173",          # (Opzionale) per Vite locale
+    "https://wolfmind-v4.pages.dev",
+    "http://localhost:3000",
+    "http://localhost:5173",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],  # Consente tutti i metodi (GET, POST, PUT, DELETE, OPTIONS, ecc.)
-    allow_headers=["*"],  # Consente tutti gli header
+    allow_origin_regex=r"https://.*\.pages\.dev",  # Accetta tutte le anteprime Cloudflare
+    allow_credentials=True,                        # Indispensabile per il Login e le sessioni
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 # ----------------------------
 api = APIRouter(prefix="/api")
