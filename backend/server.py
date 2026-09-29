@@ -38,6 +38,21 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 app = FastAPI(title="Wolf's Mind Gestionale")
+# --- CONFIGURAZIONE CORS ---
+origins = [
+    "https://wolfmind-v4.pages.dev",  # Il tuo frontend su Cloudflare Pages
+    "http://localhost:3000",          # (Opzionale) per test locali
+    "http://localhost:5173",          # (Opzionale) per Vite locale
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Consente tutti i metodi (GET, POST, PUT, DELETE, OPTIONS, ecc.)
+    allow_headers=["*"],  # Consente tutti gli header
+)
+# ----------------------------
 api = APIRouter(prefix="/api")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
