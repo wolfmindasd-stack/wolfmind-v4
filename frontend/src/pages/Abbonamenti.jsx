@@ -733,7 +733,7 @@ export default function Abbonamenti() {
                           className="bg-black/40 border-white/10 h-9 disabled:opacity-40"
                           data-testid={`item-numlez-${i}`} />
                       </div>
-                      <div className={it.categoria === "Lezioni" ? "sm:col-span-1" : "sm:col-span-2"}>
+                      <div className="sm:col-span-2">
                         <Label className="wm-label text-[10px]">Prezzo €</Label>
                         <Input type="number" step="0.01" value={it.importo}
                           onChange={(e) => updateItem(i, { importo: e.target.value })}
